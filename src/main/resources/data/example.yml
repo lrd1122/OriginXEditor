@@ -1,0 +1,8 @@
+uuid: example
+historyItems:
+  example:
+    timestamp: 0
+    originItem:
+      ...
+    targetItem:
+      ...
