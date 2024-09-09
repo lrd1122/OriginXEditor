@@ -1,0 +1,50 @@
+# Gradle files
+.gradle/
+build/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# User-specific configurations
+.idea/
+*.iml
+
+# Compiled class file
+*.class
+
+# Java class files
+*.jar
+*.war
+*.ear
+
+# Log files
+*.log
+
+# Android Studio Captures
+captures/
+output.json
+
+# APK files
+*.apk
+*.ap_
+
+# Android Studio specific files
+*.hprof
+
+# IntelliJ IDEA related files
+out/
+*.ipr
+*.iws
+*.idea/workspace.xml
+*.idea/libraries
+*.idea/modules.xml
+*.idea/*.iml
+*.idea/assetWizardSettings.xml
+*.idea/gradle.xml
+.idea/dictionaries/
+
+# Mac OS X
+.DS_Store
+
+# Windows
+Thumbs.db
