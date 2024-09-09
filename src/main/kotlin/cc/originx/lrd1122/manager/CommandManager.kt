@@ -14,9 +14,12 @@ import taboolib.common.platform.function.info
 import taboolib.library.xseries.XMaterial
 import taboolib.module.chat.colored
 import taboolib.module.chat.component
+import taboolib.module.nms.ItemTagData
 import taboolib.module.nms.getItemTag
 import taboolib.module.nms.itemTagReader
 import taboolib.platform.util.buildItem
+import taboolib.platform.util.cancelNextChat
+import taboolib.platform.util.nextChat
 import java.awt.TextComponent
 import java.lang.Compiler.command
 import java.text.SimpleDateFormat
@@ -96,7 +99,7 @@ object CommandManager {
                             listOf("set")
                         }
                         "nbt" -> {
-                            listOf("info")
+                            listOf("info", "add")
                         }
                         "lib" -> {
                             listOf("save", "give")
@@ -108,11 +111,11 @@ object CommandManager {
                 }
 
                 dynamic(comment = "value") {
-                    execute<Player> { sender, context, argument ->
-
+                    execute<ProxyPlayer> { sender, context, argument ->
                         var args = getArgs(argument)
-                        var itemStack = sender.inventory.itemInMainHand
-                        var owner = sender
+                        var player = Bukkit.getPlayer(sender.uniqueId)!!
+                        var itemStack = player.inventory.itemInMainHand
+                        var owner = player
                         if (itemStack.type != Material.AIR) {
                             var history = OriginXItemHistory(UUID.randomUUID().toString())
                             history.originItem = itemStack.clone();
@@ -161,13 +164,33 @@ object CommandManager {
                                 }
 
                                 "nbt" -> {
+                                    val tag = buildItem(itemStack).getItemTag()
                                     when (context["operation"].lowercase()) {
                                         "info" -> {
-                                            sender.sendMessage("555")
-                                            buildItem(itemStack).itemTagReader {
-                                                for (value in itemTag.values) {
-                                                    sender.sendMessage(value.type.name)
-                                                }
+                                            tag.keys.forEach { key ->
+                                                var message = "§a$key §7-> §e${tag[key]} §7| §6type: §d${tag[key]?.type?.name}"
+
+                                                message.component().sendTo(sender)
+                                            }
+                                        }
+
+                                        "add" -> {
+                                            if(args.containsKey("key") && args.containsKey("value")) {
+                                                var key = args["key"]!!
+                                                var value = args["value"]!!
+                                                if((value.toIntOrNull() ?: value) != value) tag.put(key, ItemTagData(value.toInt()))
+                                                else if((value.toByteOrNull() ?: value) != value) tag.put(key, ItemTagData(value.toByte()))
+                                                else tag.put(key, ItemTagData(value))
+                                                tag.saveTo(itemStack)
+                                                sender.sendMessage("成功为物品添加 NBT $key -> $value")
+                                            }
+                                        }
+                                        "remove" -> {
+                                            if(args.containsKey("key")) {
+                                                var key = args["key"]!!
+                                                tag.remove(key)
+                                                tag.saveTo(itemStack)
+                                                sender.sendMessage("成功移除 NBT -> $key")
                                             }
                                         }
                                     }
@@ -194,7 +217,7 @@ object CommandManager {
                                     when (context["operation"].lowercase()) {
                                         "save" -> {
                                             if (args.containsKey("key")) {
-                                                ItemManager.save(args["key"]!!, sender.inventory.itemInMainHand)
+                                                ItemManager.save(args["key"]!!, player.inventory.itemInMainHand)
                                                 sender.sendMessage("保存物品 -> ${args["key"]}")
                                             }
                                         }
@@ -203,7 +226,7 @@ object CommandManager {
                                                 var key = args["key"]
                                                 if (ItemManager.items.containsKey(key)) {
                                                     var args = getArgs(argument)
-                                                    var target = sender
+                                                    var target = player
                                                     var itemStack = ItemManager.items[key]?.itemStack!!.clone()
                                                     if (args.containsKey("target") && Bukkit.getPlayer(args["target"]!!) != null) target =
                                                         Bukkit.getPlayer(args["target"]!!)!!
