@@ -26,13 +26,15 @@ object PlayerManager {
             dataDir.mkdir()
         }
         if (dataDir.listFiles() != null) {
+            var count = 0
             for (listFile in dataDir.listFiles()) {
                 var yaml = Configuration.loadFromFile(listFile)
                 var uuid = UUID.fromString(yaml.getString("uuid"))
                 var gamePlayer = OriginXGamePlayer(uuid).initialize()
                 players[uuid] = gamePlayer
-                info("loaded data -> $uuid")
+                count++
             }
+            info("loaded $count players data")
         }
     }
 }

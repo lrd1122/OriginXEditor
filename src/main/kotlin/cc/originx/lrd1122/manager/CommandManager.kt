@@ -8,12 +8,15 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.map.MapRenderer
+import org.bukkit.potion.PotionEffect
+import org.bukkit.potion.PotionEffectType
 import taboolib.common.platform.ProxyCommandSender
 import taboolib.common.platform.ProxyPlayer
 import taboolib.common.platform.command.CommandBody
 import taboolib.common.platform.command.CommandHeader
 import taboolib.common.platform.command.subCommand
 import taboolib.common.platform.function.info
+import taboolib.common5.cint
 import taboolib.library.xseries.XMaterial
 import taboolib.module.chat.colored
 import taboolib.module.chat.component
@@ -53,7 +56,8 @@ object CommandManager {
                             "[${history.targetItem.type.name}]" +
                             "(cmd=/oxeditor get ${sender.uniqueId} ${history.key} target;" +
                             "h=${history.originItem.itemMeta?.displayName}点击获取" +
-                            ")")
+                            ")" +
+                            " 操作者: ${history.sender}")
                                     .component()
                     text.buildColored().sendTo(sender)
                 }
@@ -91,7 +95,7 @@ object CommandManager {
     val item = subCommand {
         dynamic(comment = "type") {
             suggestion<CommandSender>() { sender, context ->
-                listOf("lore", "display", "nbt", "lib", "map")
+                listOf("lore", "display", "nbt", "lib", "map", "potion")
             }
             dynamic(comment = "operation") {
                 suggestion<CommandSender>() { sender, context ->
@@ -115,6 +119,11 @@ object CommandManager {
                         "map" -> {
                             listOf("seturl")
                         }
+
+                        "potion" -> {
+                            listOf("add")
+                        }
+
                         else -> {
                             listOf()
                         }
@@ -130,6 +139,7 @@ object CommandManager {
                         var history = OriginXItemHistory(UUID.randomUUID().toString())
                         history.originItem = itemStack.clone();
                         history.timestamp = System.currentTimeMillis()
+                        history.sender = sender.name
                         when (context["type"].lowercase()) {
                             "lore" -> {
                                 when (context["operation"].lowercase()) {
@@ -267,8 +277,65 @@ object CommandManager {
                                     "seturl" -> {
                                         var returnItem = buildItem(itemStack).modifyMeta<MapMeta> {
                                             val mapView = Bukkit.createMap(player.world)
-                                            mapView.addRenderer(CustomRenderer(url = args.getOrDefault("url", "https://img.picui.cn/free/2024/09/11/66e19b7d9ad32.png")))
+                                            mapView.addRenderer(
+                                                CustomRenderer(
+                                                    url = args.getOrDefault(
+                                                        "url",
+                                                        "https://img.picui.cn/free/2024/09/11/66e19b7d9ad32.png"
+                                                    )
+                                                )
+                                            )
                                             this.mapView = mapView
+                                        }
+                                        player.inventory.setItemInMainHand(returnItem)
+                                    }
+                                }
+                            }
+
+                            "potion" -> {
+                                when (context["operation"].lowercase()) {
+                                    "add" -> {
+                                        var returnItem = buildItem(itemStack) {
+                                            potions.add(
+                                                PotionEffect(
+                                                    PotionEffectType.getByName(
+                                                        args.getOrDefault("potion", "HEAL").uppercase()
+                                                    )!!,
+                                                    args.getOrDefault("duration", 1800).cint,
+                                                    args.getOrDefault("amplifier", 1).cint
+                                                )
+                                            )
+                                        }
+                                        player.inventory.setItemInMainHand(returnItem)
+                                    }
+
+                                    "remove" -> {
+                                        var returnItem = buildItem(itemStack) {
+                                            potions.removeIf { element ->
+                                                element.type == PotionEffectType.getByName(
+                                                    args.getOrDefault("potion", "HEAL").uppercase()
+                                                )!!
+                                            }
+                                        }
+                                        player.inventory.setItemInMainHand(returnItem)
+                                    }
+
+                                    "set" -> {
+                                        var returnItem = buildItem(itemStack) {
+                                            potions.removeIf { element ->
+                                                element.type == PotionEffectType.getByName(
+                                                    args.getOrDefault("potion", "HEAL").uppercase()
+                                                )!!
+                                            }
+                                            potions.add(
+                                                PotionEffect(
+                                                    PotionEffectType.getByName(
+                                                        args.getOrDefault("potion", "HEAL").uppercase()
+                                                    )!!,
+                                                    args.getOrDefault("duration", 1800).cint,
+                                                    args.getOrDefault("amplifier", 1).cint
+                                                )
+                                            )
                                         }
                                         player.inventory.setItemInMainHand(returnItem)
                                     }

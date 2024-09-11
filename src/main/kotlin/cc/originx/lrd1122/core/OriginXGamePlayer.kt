@@ -21,6 +21,7 @@ class OriginXGamePlayer(var uuid: UUID) {
         for (value in historyItems.values) {
             yaml.set("historyItems.${value.key}.originItem", value.originItem)
             yaml.set("historyItems.${value.key}.targetItem", value.targetItem)
+            yaml.set("historyItems.${value.key}.sender", value.sender)
             yaml["historyItems.${value.key}.timestamp"] = value.timestamp
         }
         yaml.save(file)
@@ -38,6 +39,7 @@ class OriginXGamePlayer(var uuid: UUID) {
                 var history = OriginXItemHistory(key)
                 history.originItem = sec.getItemStack("$key.originItem")!!
                 history.targetItem = sec.getItemStack("$key.targetItem")!!
+                history.sender = sec.getString("$key.sender", "").toString()
                 history.timestamp = sec.getLong("$key.timestamp")
                 historyItems[key] = history
             }

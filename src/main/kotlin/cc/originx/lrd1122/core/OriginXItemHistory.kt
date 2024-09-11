@@ -6,6 +6,7 @@ class OriginXItemHistory(var key: String) {
     lateinit var originItem: ItemStack
     lateinit var targetItem: ItemStack
     var historyCommand = ""
+    var sender = ""
     var timestamp: Long = 0L
 
 }
