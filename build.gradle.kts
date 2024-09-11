@@ -1,4 +1,6 @@
 import io.izzel.taboolib.gradle.BUKKIT
+import io.izzel.taboolib.gradle.BUKKIT_ALL
+import io.izzel.taboolib.gradle.NMS_UTIL
 import io.izzel.taboolib.gradle.UNIVERSAL
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -11,7 +13,7 @@ plugins {
 taboolib {
     env {
         // 安装模块
-        install(UNIVERSAL, BUKKIT)
+        install(UNIVERSAL, BUKKIT, BUKKIT_ALL, NMS_UTIL)
     }
     version { taboolib = "6.1.2-beta10" }
 }
